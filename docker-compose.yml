@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+#Mysql Container
+  mysql:
+    image: mysql:5.7.23
+    container_name: mysql-glpi
+    hostname: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwer@123
+      - MYSQL_DATABASE=glpidb
+      - MYSQL_USER=glpiuser
+      - MYSQL_PASSWORD=glpi
+    volumes:
+      - mysql-glpi:/var/lib/mysql
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - glpi-network
+    restart: always
+
+#GLPI Container
+  glpi:
+    build:
+      dockerfile: Dockerfile
+      context: ./glpi/
+    container_name : glpi
+    hostname: glpi
+    ports:
+      - "80:80"
+      - "443:443" 
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - glpi:/var/www/html/
+    networks:
+      - glpi-network
+    environment:
+      - TIMEZONE=America/Recife
+    restart: always
+
+networks:
+  glpi-network:
+    name: glpi-network
+
+volumes:
+  mysql-glpi:
+    name: mysql-glpi
+  glpi:
+    name: glpi
