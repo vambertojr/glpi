@@ -1,12 +1,9 @@
-#On choisit une debian
-#FROM debian:10.4
 FROM debian:10.4
 
-#Ne pas poser de question à l'installation
+ARG VERSION=9.5.1
 
 ENV DEBIAN_FRONTEND noninteractive
 
-#Installation d'apache et de php7.3 avec extension
 RUN apt update \
 && apt install --yes --no-install-recommends \
 apache2 \
@@ -33,16 +30,16 @@ ca-certificates \
 jq \
 && rm -rf /var/lib/apt/lists/*
 
-ADD ./glpi-9.5.1.tgz /var/www/html
+ADD --chown=www-data:www-data https://github.com/glpi-project/glpi/releases/download/${VERSION}/glpi-${VERSION}.tgz /var/www/html
 COPY "./000-default.conf" /etc/apache2/sites-available/000-default.conf
 
 RUN echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi \
 && service cron start
 
+RUN sed -E -i -e 's/max_execution_time = 30/max_execution_time = 600/' /etc/php/7.3/cli/php.ini
+
 RUN a2enmod rewrite && service apache2 restart && service apache2 stop
 
-RUN sed -E -i -e 's/max_execution_time = 30/max_execution_time = 600/' /etc/php/7.3/cli/php.ini
- 
 EXPOSE 80 443
 
 ENTRYPOINT [ "apache2ctl", "-D", "FOREGROUND" ]
