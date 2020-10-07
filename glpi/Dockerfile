@@ -30,7 +30,14 @@ ca-certificates \
 jq \
 && rm -rf /var/lib/apt/lists/*
 
-ADD --chown=www-data:www-data https://github.com/glpi-project/glpi/releases/download/${VERSION}/glpi-${VERSION}.tgz /var/www/html
+WORKDIR /var/www/html
+
+ADD https://github.com/glpi-project/glpi/releases/download/${VERSION}/glpi-${VERSION}.tgz /var/www/html
+
+RUN tar -zxvf /var/www/html/glpi-${VERSION}.tgz \
+&& rm -rf glpi-${VERSION}.tgz \
+&& chown www-data:www-data /var/www/html/glpi -R
+
 COPY "./000-default.conf" /etc/apache2/sites-available/000-default.conf
 
 RUN echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi \
